@@ -1,0 +1,25 @@
+{
+    "name": "Starting Room",
+    "description": "You find yourself in a small, dimly lit room.",
+    "exits": {
+        "north": {
+            "connected": true,
+            "room": "Room2",
+            "direction": "north",
+            "secret": false
+        },
+        "northeast": {
+            "connected": false
+        }
+    },
+    "items": [
+    ],
+    "npcs": [
+    ],
+    "puzzles": [
+    ],
+    "traps": [
+    ],
+    "conditions": {
+    }
+}

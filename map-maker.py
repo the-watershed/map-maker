@@ -12,9 +12,12 @@ class RoomMapApp:
         self.root = root
         self.root.title("Room Map Maker")
         
-        # Apply Windows theme
-        self.root.tk.call('source', 'C:/path/to/your/awthemes-10.4.0/awthemes/windows10.tcl')
-        ttk.Style().theme_use('windows10')
+        # Initialize ttk.Style
+        self.style = ttk.Style()
+        self.style.configure("TButton", padding=6, relief="flat", background="#ccc")
+        self.style.configure("TLabel", background="#f0f0f0", font=("Helvetica", 12))
+        self.style.configure("TEntry", padding=6)
+        self.style.configure("Treeview", background="#f0f0f0", fieldbackground="#f0f0f0", font=("Helvetica", 10))
         
         # Prompt user for grid size
         self.grid_width = simpledialog.askinteger("Grid Width", "Enter the grid width (X):", minvalue=1, maxvalue=50)
@@ -31,7 +34,7 @@ class RoomMapApp:
         } for _ in range(self.grid_height)] for _ in range(self.grid_width)]}
         
         self.canvas = tk.Canvas(self.root, width=self.grid_width * 50, height=self.grid_height * 50)
-        self.canvas.pack()
+        self.canvas.pack(padx=10, pady=10)
         
         self.create_menu()
         self.draw_map()
@@ -137,34 +140,37 @@ class RoomMapApp:
         edit_window = tk.Toplevel(self.root)
         edit_window.title(f"Edit Room ({x}, {y})")
 
-        tk.Label(edit_window, text="Name:").grid(row=0, column=0, sticky=tk.W)
-        name_entry = tk.Entry(edit_window, width=50)
+        frame = ttk.Frame(edit_window, padding="10")
+        frame.grid(row=0, column=0, sticky=(tk.W, tk.E, tk.N, tk.S))
+
+        ttk.Label(frame, text="Name:").grid(row=0, column=0, sticky=tk.W)
+        name_entry = ttk.Entry(frame, width=50)
         name_entry.grid(row=0, column=1, padx=10, pady=5)
         name_entry.insert(0, room["name"])
 
-        tk.Label(edit_window, text="Description:").grid(row=1, column=0, sticky=tk.W)
-        description_entry = tk.Entry(edit_window, width=50)
+        ttk.Label(frame, text="Description:").grid(row=1, column=0, sticky=tk.W)
+        description_entry = ttk.Entry(frame, width=50)
         description_entry.grid(row=1, column=1, padx=10, pady=5)
         description_entry.insert(0, room["description"])
 
-        tk.Label(edit_window, text="Ingresses:").grid(row=2, column=0, sticky=tk.W)
-        ingresses_tree = ttk.Treeview(edit_window, columns=("Direction", "Target"), show="headings", height=3)
+        ttk.Label(frame, text="Ingresses:").grid(row=2, column=0, sticky=tk.W)
+        ingresses_tree = ttk.Treeview(frame, columns=("Direction", "Target"), show="headings")
         ingresses_tree.heading("Direction", text="Direction")
         ingresses_tree.heading("Target", text="Target")
         ingresses_tree.grid(row=2, column=1, padx=10, pady=5)
         for ingress in room["ingresses"]:
             ingresses_tree.insert("", "end", values=(ingress["direction"], ingress["target"]))
 
-        tk.Label(edit_window, text="Egresses:").grid(row=3, column=0, sticky=tk.W)
-        egresses_tree = ttk.Treeview(edit_window, columns=("Direction", "Target"), show="headings", height=3)
+        ttk.Label(frame, text="Egresses:").grid(row=3, column=0, sticky=tk.W)
+        egresses_tree = ttk.Treeview(frame, columns=("Direction", "Target"), show="headings")
         egresses_tree.heading("Direction", text="Direction")
         egresses_tree.heading("Target", text="Target")
         egresses_tree.grid(row=3, column=1, padx=10, pady=5)
         for egress in room["egresses"]:
             egresses_tree.insert("", "end", values=(egress["direction"], egress["target"]))
 
-        tk.Label(edit_window, text="Inventory:").grid(row=4, column=0, sticky=tk.W)
-        inventory_tree = ttk.Treeview(edit_window, columns=("Item"), show="headings", height=3)
+        ttk.Label(frame, text="Inventory:").grid(row=4, column=0, sticky=tk.W)
+        inventory_tree = ttk.Treeview(frame, columns=("Item"), show="headings")
         inventory_tree.heading("Item", text="Item")
         inventory_tree.grid(row=4, column=1, padx=10, pady=5)
         for item in room["inventory"]:
@@ -178,20 +184,20 @@ class RoomMapApp:
             if selected_item:
                 inventory_tree.delete(selected_item)
 
-        add_button = tk.Button(edit_window, text="Add Item", command=add_inventory_item)
+        add_button = ttk.Button(frame, text="Add Item", command=add_inventory_item)
         add_button.grid(row=5, column=0, padx=10, pady=5)
 
-        delete_button = tk.Button(edit_window, text="Delete Item", command=delete_inventory_item)
+        delete_button = ttk.Button(frame, text="Delete Item", command=delete_inventory_item)
         delete_button.grid(row=5, column=1, padx=10, pady=5)
 
-        tk.Label(edit_window, text="Has Weather:").grid(row=6, column=0, sticky=tk.W)
+        ttk.Label(frame, text="Has Weather:").grid(row=6, column=0, sticky=tk.W)
         has_weather_var = tk.BooleanVar(value=room["has_weather"])
-        has_weather_dropdown = ttk.Combobox(edit_window, textvariable=has_weather_var, values=[True, False])
+        has_weather_dropdown = ttk.Combobox(frame, textvariable=has_weather_var, values=[True, False])
         has_weather_dropdown.grid(row=6, column=1, padx=10, pady=5)
 
-        tk.Label(edit_window, text="Is List:").grid(row=7, column=0, sticky=tk.W)
+        ttk.Label(frame, text="Is List:").grid(row=7, column=0, sticky=tk.W)
         is_list_var = tk.BooleanVar(value=room["is_list"])
-        is_list_dropdown = ttk.Combobox(edit_window, textvariable=is_list_var, values=[True, False])
+        is_list_dropdown = ttk.Combobox(frame, textvariable=is_list_var, values=[True, False])
         is_list_dropdown.grid(row=7, column=1, padx=10, pady=5)
 
         def save_changes():
@@ -205,7 +211,7 @@ class RoomMapApp:
             self.save_room_edit(x, y, name, description, ingresses, egresses, inventory, has_weather, is_list)
             edit_window.destroy()
 
-        save_button = tk.Button(edit_window, text="Save", command=save_changes)
+        save_button = ttk.Button(frame, text="Save", command=save_changes)
         save_button.grid(row=8, column=0, columnspan=2, pady=10)
 
     def on_canvas_click(self, event, x, y):
@@ -286,10 +292,10 @@ class RoomMapApp:
             if two_way_var.get():
                 one_way_var.set(False)
 
-        one_way_check = tk.Checkbutton(connection_window, text="One-way", variable=one_way_var, command=on_one_way_checked)
+        one_way_check = ttk.Checkbutton(connection_window, text="One-way", variable=one_way_var, command=on_one_way_checked)
         one_way_check.grid(row=0, column=0, padx=10, pady=5)
 
-        two_way_check = tk.Checkbutton(connection_window, text="Two-way", variable=two_way_var, command=on_two_way_checked)
+        two_way_check = ttk.Checkbutton(connection_window, text="Two-way", variable=two_way_var, command=on_two_way_checked)
         two_way_check.grid(row=0, column=1, padx=10, pady=5)
 
         def save_connection():
@@ -309,7 +315,7 @@ class RoomMapApp:
                 return
             connection_window.destroy()
 
-        save_button = tk.Button(connection_window, text="Save", command=save_connection)
+        save_button = ttk.Button(connection_window, text="Save", command=save_connection)
         save_button.grid(row=1, column=0, columnspan=2, pady=10)
 
     def get_direction(self, start_x, start_y, end_x, end_y):
